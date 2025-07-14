@@ -27,7 +27,7 @@ jobs:
       run: |
         newman run "postman/Dev-Revenir Complete Flow.postman_collection.json" `
           --environment "postman/revenir-env.json" `
-          --working-dir ./postman/images \
+          --working-dir "postman/images"
           --reporter-json-export "postman/newman-report.json"
     
     - name: Upload Newman Test Report
