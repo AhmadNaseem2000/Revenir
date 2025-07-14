@@ -1,0 +1,2399 @@
+{
+	"info": {
+		"_postman_id": "ca2de90a-7764-4589-8e86-abb7e480341a",
+		"name": "Revenir (Backend)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27463200"
+	},
+	"item": [
+		{
+			"name": "Subject",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Extract subject_id from the 'Location' header\r",
+							"var subject_idFull = pm.response.headers.get('Location').split('/');\r",
+							"var subject_id = subject_idFull[2];\r",
+							"pm.collectionVariables.set('subject_id', subject_id);\r",
+							"\r",
+							"// Fixed the parseDate reference error\r",
+							"function parseDate(dateString) {\r",
+							"    return new Date(dateString);\r",
+							"}\r",
+							"\r",
+							"pm.test('Response status code is 201', function () {\r",
+							"    pm.expect(pm.response.code).to.equal(201);\r",
+							"});\r",
+							"\r",
+							"pm.test('Response body includes status and message properties', function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData).to.include.all.keys('status', 'message');\r",
+							"});\r",
+							"\r",
+							"pm.test('Response body has the correct schema', function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData).to.have.property('status').that.is.a('string');\r",
+							"    pm.expect(responseData).to.have.property('message').that.is.a('string');\r",
+							"});\r",
+							"\r",
+							"pm.test('Ensure the response includes required fields - status and message', function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData).to.have.property('status');\r",
+							"    pm.expect(responseData).to.have.property('message');\r",
+							"});\r",
+							"\r",
+							"pm.test('Response headers contain specific fields', function () {\r",
+							"    pm.response.to.have.header('Content-Type');\r",
+							"    pm.response.to.have.header('Date');\r",
+							"    pm.response.to.have.header('Content-Length');\r",
+							"    pm.response.to.have.header('Location');\r",
+							"});\r",
+							"\r",
+							"// Address Line Length Should Be Less Than 256 (Request validation)\r",
+							"pm.test('Address Line Length Should Be Less Than 256', function () {\r",
+							"    var addressLine1 = pm.request.body.raw ? JSON.parse(pm.request.body.raw).address.line_1 : null;\r",
+							"    var addressLine2 = pm.request.body.raw ? JSON.parse(pm.request.body.raw).address.line_2 : null;\r",
+							"    var addressLine3 = pm.request.body.raw ? JSON.parse(pm.request.body.raw).address.line_3 : null;\r",
+							"    pm.expect(addressLine1.length).to.be.below(256);\r",
+							"    pm.expect(addressLine2.length).to.be.below(256);\r",
+							"    pm.expect(addressLine3.length).to.be.below(256);\r",
+							"});\r",
+							"\r",
+							"// Postal Code Length Should Be Less Than 13 (Request validation)\r",
+							"pm.test('Postal Code Length Should Be Less Than 13', function () {\r",
+							"    var postalCode = JSON.parse(pm.request.body.raw).address.postcode;\r",
+							"    pm.expect(postalCode.length).to.be.below(13);\r",
+							"});\r",
+							"\r",
+							"// Passport Number Format Should Be Valid\r",
+							"pm.test('Passport Number Format Should Be Valid', function () {\r",
+							"    var passportNumber = JSON.parse(pm.request.body.raw).passport.number;\r",
+							"\r",
+							"    // Match alphanumeric characters (both upper and lower case), digits, and hyphens anywhere in the string (6 to 9 characters)\r",
+							"    pm.expect(passportNumber).to.match(/^[A-Za-z0-9-]{6,9}$/); // This regex allows lowercase letters, numbers, and hyphens\r",
+							"});\r",
+							"\r",
+							"pm.test('Passport Number Length Should Be Less Than or Equal to 9', function () {\r",
+							"    var passportNumber = JSON.parse(pm.request.body.raw).passport.number;\r",
+							"\r",
+							"    // Check if the length of the passport number is less than or equal to 9\r",
+							"    pm.expect(passportNumber.length).to.be.at.most(9); // This checks if the length is <= 9\r",
+							"});\r",
+							"\r",
+							"// Postal Code Should Not Contain Special Characters (Request validation)\r",
+							"pm.test('Postal Code Should Not Contain Special Characters', function () {\r",
+							"    var postalCode = JSON.parse(pm.request.body.raw).address.postcode;\r",
+							"    pm.expect(postalCode).to.match(/^[a-zA-Z0-9]*$/);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Function to generate a random string for Passport Number (alphanumeric with max length of 9)\r",
+							"function generateRandomString(length) {\r",
+							"    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';  // Alphanumeric characters\r",
+							"    let result = '';\r",
+							"    for (let i = 0; i < length; i++) {\r",
+							"        result += characters.charAt(Math.floor(Math.random() * characters.length));\r",
+							"    }\r",
+							"    return result;\r",
+							"}\r",
+							"\r",
+							"// Generate a random passport number of length 9\r",
+							"var passportNumber = generateRandomString(9);\r",
+							"\r",
+							"// Set the passport number in the environment variable\r",
+							"pm.environment.set('passport_number', passportNumber);\r",
+							"\r",
+							"// Log the generated passport number to the console\r",
+							"console.log('Generated Passport Number: ' + passportNumber);\r",
+							"\r",
+							"// Generate a random first name from a predefined list\r",
+							"function getRandomFirstName() {\r",
+							"    const firstNames = ['John', 'Alice', 'Bob', 'Sophia', 'James', 'Emily', 'William', 'Olivia', 'Michael', 'Isabella'];\r",
+							"    return firstNames[Math.floor(Math.random() * firstNames.length)];\r",
+							"}\r",
+							"\r",
+							"// Generate a random last name from a predefined list\r",
+							"function getRandomLastName() {\r",
+							"    const lastNames = ['Smith', 'Johnson', 'Brown', 'Taylor', 'Williams', 'Miller', 'Davis', 'Wilson', 'Anderson', 'Thomas'];\r",
+							"    return lastNames[Math.floor(Math.random() * lastNames.length)];\r",
+							"}\r",
+							"\r",
+							"// Generate a random address line\r",
+							"function getRandomAddressLine() {\r",
+							"    const addressLines = ['123 Main St', '456 Oak Rd', '789 Pine Ave', '321 Maple Blvd', '654 Birch Ln'];\r",
+							"    return addressLines[Math.floor(Math.random() * addressLines.length)];\r",
+							"}\r",
+							"\r",
+							"// Generate a random city\r",
+							"function getRandomCity() {\r",
+							"    const cities = ['Berlin', 'Paris', 'Rome', 'Madrid', 'Amsterdam', 'Stockholm', 'Copenhagen', 'Helsinki', 'Brussels', 'Lisbon'];\r",
+							"    return cities[Math.floor(Math.random() * cities.length)];\r",
+							"}\r",
+							"\r",
+							"// Generate a random region (state or province)\r",
+							"function getRandomRegion() {\r",
+							"    const regions = ['Bavaria', 'Île-de-France', 'Lazio', 'Catalonia', 'North Holland', 'Skåne', 'Sealand', 'Uusimaa', 'Flanders', 'Lisbon'];\r",
+							"    return regions[Math.floor(Math.random() * regions.length)];\r",
+							"}\r",
+							"\r",
+							"// Generate a random postcode\r",
+							"function getRandomPostcode() {\r",
+							"    return Math.floor(Math.random() * 90000) + 10000; // Generates a 5-digit number\r",
+							"}\r",
+							"\r",
+							"// Generate Fake Data\r",
+							"var firstName = getRandomFirstName();\r",
+							"var lastName = getRandomLastName();\r",
+							"var addressLine1 = getRandomAddressLine();\r",
+							"var addressLine2 = getRandomAddressLine();\r",
+							"var addressLine3 = getRandomAddressLine();\r",
+							"var city = getRandomCity();\r",
+							"var region = getRandomRegion();\r",
+							"var postcode = getRandomPostcode();\r",
+							"\r",
+							"// Set the country directly to 'FRA' or 'BEL' (France or Belgium)\r",
+							"var country = 'FRA'; // You can change this to 'BEL' for Belgium\r",
+							"\r",
+							"// Set the generated data as environment variables\r",
+							"pm.environment.set('passport_number', passportNumber);\r",
+							"pm.environment.set('first_name', firstName);\r",
+							"pm.environment.set('last_name', lastName);\r",
+							"pm.environment.set('country', country);  // Set country to FRA or BEL\r",
+							"pm.environment.set('address_line_1', addressLine1);\r",
+							"pm.environment.set('address_line_2', addressLine2);\r",
+							"pm.environment.set('address_line_3', addressLine3);\r",
+							"pm.environment.set('city', city);\r",
+							"pm.environment.set('region', region);\r",
+							"pm.environment.set('postcode', postcode);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "ntlm"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"first_name\": \"{{first_name}}\",\n    \"last_name\": \"{{last_name}}\",\n    \"passport\": {\n        \"number\": \"{{passport_number}}\",\n        \"country\": \"FRA\",\n        \"expiry\": \"19-01-2026\"\n    },\n    \"address\": {\n        \"line_1\": \"{{address_line_1}}\",\n        \"line_2\": \"{{address_line_2}}\",\n        \"line_3\": \"{{address_line_3}}\",\n        \"city\": \"{{$randomCity}}\",\n        \"region\": \"{{region}}\",\n        \"postcode\": \"{{postcode}}\",\n        \"country\": \"BEL\"\n    },\n    \"dob\": \"19-01-1987\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Subject",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status is 200\", function () {\r",
+							"    pm.response.to.have.status(200); // Check that the status code is 200\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response headers contain specific fields\", function () {\r",
+							"    pm.response.to.have.header(\"Content-Type\");\r",
+							"    pm.response.to.have.header(\"Date\");\r",
+							"    pm.response.to.have.header(\"Content-Length\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response message is correct\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.message).to.eql(\"Record has been retrieved.\"); // Check if the message is correct\r",
+							"});\r",
+							"\r",
+							"// Optional: Test for response time\r",
+							"pm.test(\"Response time is less than 5000ms\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000); // Ensure the response time is below 5000ms\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "ntlm"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects",
+						"{{subject_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload Document",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201); // Check that the status code is 201\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Status is success\", function () {\r",
+							"    pm.expect(pm.response.json().status).to.equal(\"success\"); // Check that the status is \"success\"\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response message is present\", function () {\r",
+							"    pm.expect(pm.response.json().message).to.be.ok; // Ensure the message is present in the response\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Location header exists\", function () {\r",
+							"    pm.response.to.have.header(\"Location\"); // Check that the \"Location\" header exists in the response\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "C:\\Users\\ahmad\\OneDrive\\Desktop\\Techilab\\Passport.jpg"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}/documents",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects",
+						"{{subject_id}}",
+						"documents"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Trip",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var trip_idFull = pm.response.headers.get('Location').split('/');\r",
+							"var trip_id = trip_idFull[4];\r",
+							"pm.collectionVariables.set(\"trip_id\", trip_id);\r",
+							"\r",
+							"pm.test(\"request body validations for country\", () => {\r",
+							"    if (pm.request.body.mode === 'raw' && pm.request.body.raw) {\r",
+							"        try {\r",
+							"            var jsonData = JSON.parse(pm.request.body.raw);\r",
+							"            pm.expect(jsonData.country).to.not.be.null;\r",
+							"            pm.expect(jsonData.country_destination).to.not.be.null;\r",
+							"            pm.expect(jsonData.departure_terminal).to.not.be.null;\r",
+							"            pm.expect(jsonData.end_date).to.not.be.null;\r",
+							"            pm.expect(jsonData.mode_of_travel).to.not.be.null;\r",
+							"            pm.expect(jsonData.start_date).to.not.be.null;\r",
+							"            pm.expect(jsonData.trip_name).to.not.be.null;\r",
+							"        } catch (e) {\r",
+							"            console.error(\"Failed to parse JSON: \", e);\r",
+							"        }\r",
+							"    } else {\r",
+							"        console.log(\"Request body is not in raw JSON format.\");\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response body includes status and message properties\", () => {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.have.property('status');\r",
+							"    pm.expect(jsonData).to.have.property('message');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response status code is 201\", function () {\r",
+							"    pm.expect(pm.response.code).to.equal(201);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response body includes status and message properties\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('object');\r",
+							"  pm.expect(responseData).to.include.all.keys('status', 'message');\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response body has the correct schema\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData).to.have.property('status').that.is.a('string');\r",
+							"    pm.expect(responseData).to.have.property('message').that.is.a('string');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ensure the response includes required fields - status and message\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData).to.have.property('status');\r",
+							"    pm.expect(responseData).to.have.property('message');\r",
+							"});\r",
+							"\r",
+							"// Test to check for specific response header fields\r",
+							"pm.test(\"Response headers contain specific fields\", function () {\r",
+							"    pm.response.to.have.header(\"Content-Type\");\r",
+							"    pm.response.to.have.header(\"Date\");\r",
+							"    pm.response.to.have.header(\"Content-Length\");\r",
+							"    pm.response.to.have.header(\"location\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Date header is in DD/MM/YYYY format\", function () {\r",
+							"    // Extract the Date header\r",
+							"    var dateHeader = pm.response.headers.get('Date');\r",
+							"\r",
+							"    // Convert the Date header to a JavaScript Date object\r",
+							"    var dateObj = new Date(dateHeader);\r",
+							"\r",
+							"    // Format the date as DD/MM/YYYY\r",
+							"    var day = (\"0\" + dateObj.getDate()).slice(-2);  // Add leading zero if needed\r",
+							"    var month = (\"0\" + (dateObj.getMonth() + 1)).slice(-2);  // Month is zero-based, so add 1\r",
+							"    var year = dateObj.getFullYear();\r",
+							"    \r",
+							"    // Construct the formatted date as DD/MM/YYYY\r",
+							"    var formattedDate = day + '/' + month + '/' + year;\r",
+							"\r",
+							"    // Log the formatted date for debugging\r",
+							"    console.log(\"Formatted Date:\", formattedDate);\r",
+							"\r",
+							"    // Assert that the formatted date is in the correct format\r",
+							"    pm.expect(formattedDate).to.match(/^(0[1-9]|[12][0-9]|3[01])\\/(0[1-9]|1[0-2])\\/\\d{4}$/);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "SubjectToken",
+						"value": "Test-Aleem-Ahmad-3",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"country\": \"GBR\",\n  \"country_destination\": \"FRA\",\n  \"departure_terminal\": \"HEL\",\n  \"mode_of_travel\": \"flight\",\n  \"start_date\": \"10-03-2025\",\n  \"trip_name\": \"Trip test 1\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}/trips",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects",
+						"{{subject_id}}",
+						"trips"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Subject Trips",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status is 200\", function () {\r",
+							"    pm.response.to.have.status(200); // Check that the status code is 200\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response contains message and status\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson).to.have.property(\"status\").that.equals(\"success\"); // Check if status is 'success'\r",
+							"    pm.expect(responseJson).to.have.property(\"message\").that.equals(\"Record has been retrieved.\"); // Check if message is correct\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Data is an array and contains at least one trip\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.data).to.be.an(\"array\").that.is.not.empty; // Ensure data is an array and not empty\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each trip has required fields\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    \r",
+							"    responseJson.data.forEach(function(trip) {\r",
+							"        pm.expect(trip).to.have.all.keys(\r",
+							"            \"country_destination\", \r",
+							"            \"created_at\", \r",
+							"            \"mode_of_travel\", \r",
+							"            \"start_date\", \r",
+							"            \"departure_terminal\", \r",
+							"            \"trip_name\", \r",
+							"            \"subject_id\", \r",
+							"            \"trip_id\", \r",
+							"            \"country\"\r",
+							"        ); // Validate the required fields are present in each trip\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Subject ID in URL matches the response\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    const subjectIdFromUrl = pm.variables.get(\"subject_id\"); // Get the subject_id from the URL\r",
+							"    pm.expect(responseJson.data[0].subject_id).to.eql(subjectIdFromUrl); // Check if subject_id in response matches the subject_id in the request URL\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response contains valid date format\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    const createdAt = responseJson.data[0].created_at;\r",
+							"    pm.expect(createdAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}/); // Fixed the regular expression by adding a closing / at the end\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "ntlm"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}/trips",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects",
+						"{{subject_id}}",
+						"trips"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Trip Itinerary",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Extract itinerary_id from the 'Location' header",
+							"var itinerary_idFull = pm.response.headers.get('Location').split('/');",
+							"var itinerary_id = itinerary_idFull[6];",
+							"pm.collectionVariables.set('itinerary_id', itinerary_id);",
+							"pm.environment.set(\"itinerary_id\", itinerary_id);",
+                            "console.log(itinerary_id);",
+
+							"// 1. Test for Status Code 201 (Created)\r",
+							"pm.test(\"Status code is 201\", function() {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"// 2. Test for \"status\" being \"success\"\r",
+							"pm.test(\"Status is success\", function() {\r",
+							"    let jsonResponse = pm.response.json();\r",
+							"    pm.expect(jsonResponse.status).to.equal(\"success\");\r",
+							"});\r",
+							"\r",
+							"// 3. Test for \"message\" being \"Trip Itinerary has been added.\"\r",
+							"pm.test(\"Message is 'Trip Itinerary has been added.'\", function() {\r",
+							"    let jsonResponse = pm.response.json();\r",
+							"    pm.expect(jsonResponse.message).to.equal(\"Trip Itinerary has been added.\");\r",
+							"});\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "ntlm"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"country\": \"FRA\",\n    \"departure_country\": \"ITA\",\n    \"departure_date\":\"01-04-2025\",\n    \"arrival_date\":\"02-05-2026\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}/trips/{{trip_id}}/itinerary",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects",
+						"{{subject_id}}",
+						"trips",
+						"{{trip_id}}",
+						"itinerary"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Subject Trips Detail",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status is 200\", function () {\r",
+							"    pm.response.to.have.status(200); // Check that the status code is 200\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response contains message and status\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson).to.have.property(\"status\").that.equals(\"success\"); // Check if status is 'success'\r",
+							"    pm.expect(responseJson).to.have.property(\"message\").that.equals(\"Record has been retrieved.\"); // Check if message is correct\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Data contains required fields\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.data).to.have.all.keys(\r",
+							"        \"country_destination\", \r",
+							"        \"created_at\", \r",
+							"        \"mode_of_travel\", \r",
+							"        \"start_date\", \r",
+							"        \"departure_terminal\", \r",
+							"        \"trip_name\", \r",
+							"        \"subject_id\", \r",
+							"        \"trip_id\", \r",
+							"        \"country\"\r",
+							"    ); // Ensure all required fields are present in the data object\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Subject ID in URL matches the response\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    \r",
+							"    // Get the subject_id from the request URL\r",
+							"    const url = pm.request.url.toString(); // Get the full URL as a string\r",
+							"    const subjectIdFromUrl = url.split('/')[4]; // Extract the subject_id from the URL path\r",
+							"\r",
+							"    pm.expect(responseJson.data.subject_id).to.eql(subjectIdFromUrl); // Check if subject_id in response matches the subject_id in the URL\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response contains valid date format\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    const createdAt = responseJson.data.created_at;\r",
+							"    pm.expect(createdAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$/); // Validate the created_at date format (ISO 8601)\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response time is less than 50000ms\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(50000); // Ensure the response time is below 5000ms\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "ntlm"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}/trips/{{trip_id}}",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects",
+						"{{subject_id}}",
+						"trips",
+						"{{trip_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload Boarding Document",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"pm.test(\"Status is success\", function () {\r",
+							"    pm.expect(pm.response.json().status).to.equal(\"success\");\r",
+							"});\r",
+							"pm.test(\"Response message is present\", function () {\r",
+							"    pm.expect(pm.response.json().message).to.be.ok;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Location header exists\", function () {\r",
+							"    pm.response.to.have.header(\"Location\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "C:\\Users\\ahmad\\OneDrive\\Desktop\\Techilab\\Passport.jpg"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}/trip/{{trip_id}}/document",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects",
+						"{{subject_id}}",
+						"trip",
+						"{{trip_id}}",
+						"document"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Boarding Document",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}/trips/{{trip_id}}/document",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects",
+						"{{subject_id}}",
+						"trips",
+						"{{trip_id}}",
+						"document"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Transaction",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Request body validations for country\", () => {\r",
+							"    if (pm.request.body.mode === 'raw' && pm.request.body.raw) {\r",
+							"        try {\r",
+							"            var jsonData = JSON.parse(pm.request.body.raw);\r",
+							"            pm.expect(jsonData.country).to.not.be.empty;\r",
+							"            pm.expect(jsonData.merchant_name).to.not.be.empty;\r",
+							"            pm.expect(jsonData.transaction_date).to.not.be.empty;\r",
+							"            pm.expect(jsonData.total_amount).to.not.be.null;\r",
+							"            pm.expect(jsonData.total_vat_amount).to.not.be.null;\r",
+							"            pm.expect(jsonData.receipt_status).to.not.be.empty;\r",
+							"            pm.expect(jsonData.merchant_transaction_id).to.not.be.empty;\r",
+							"            pm.expect(jsonData.currency).to.not.be.empty;\r",
+							"        } catch (e) {\r",
+							"            console.error(\"Failed to parse JSON: \", e);\r",
+							"        }\r",
+							"    } else {\r",
+							"        console.log(\"Request body is not in raw JSON format.\");\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response body includes status and message properties\", () => {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.have.property('status');\r",
+							"    // pm.expect(jsonData).to.have.property('message');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.expect(pm.response.code).to.equal(200);\r",
+							"});\r",
+							"\r",
+							"// pm.test(\"Response body includes status and message properties\", function () {\r",
+							"//     const responseData = pm.response.json();\r",
+							"//     pm.expect(responseData).to.be.an('object');\r",
+							"//     pm.expect(responseData).to.include.all.keys('status', 'message');\r",
+							"// });\r",
+							"\r",
+							"pm.test(\"Response body has the correct schema\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"\r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData).to.have.property('status').that.is.a('string');\r",
+							"    // pm.expect(responseData).to.have.property('message').that.is.a('string');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ensure the response includes required fields - status and message\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"\r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData).to.have.property('status');\r",
+							"    // pm.expect(responseData).to.have.property('message');\r",
+							"});\r",
+							"\r",
+							"// Test to check for specific response header fields\r",
+							"pm.test(\"Response headers contain specific fields\", function () {\r",
+							"    pm.response.to.have.header(\"Content-Type\");\r",
+							"    pm.response.to.have.header(\"Date\");\r",
+							"    pm.response.to.have.header(\"Content-Length\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "SubjectToken",
+						"value": "Test-Aleem-Ahmad-3",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"country\": \"FRA\",\n    \"merchant_name\": \"Chanel\",\n    \"transaction_date\": \"02/12/2023\",\n    \"total_amount\": 1300,\n    \"total_vat_amount\":130,\n    \"receipt_status\": \"accepted\",\n    \"merchant_transaction_id\": \"abc-9-dec-2024\",\n    \"currency\":\"EUR\",\n    \"subject_id\":\"{{subject_id}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/transactions",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Subject Transactions",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+
+							"// Parse response body",
+							"const responseJson = pm.response.json();",
+							"",
+							"// Check if 'transaction_id' exists and set it as a variable",
+							"if (responseJson && responseJson.data && responseJson.data[0] && responseJson.data[0].transaction_id) {",
+							"    const transactionId = responseJson.data[0].transaction_id;",
+							"    pm.environment.set(\"transaction_Id\", transactionId);",
+							"    pm.collectionVariables.set(\"transaction_id\", transactionId);",
+							"    console.log(\"Transaction ID:\", transactionId);",
+							"} else {",
+							"    console.log(\"Error: 'transaction_id' not found in the response body.\");",
+							"}",
+							"",
+							"// Test: Status is 200",
+							"pm.test(\"Response status is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"// Test: Response contains status and message",
+							"pm.test(\"Response contains message and status\", function () {",
+							"    pm.expect(responseJson).to.have.property(\"status\", \"success\");",
+							"    pm.expect(responseJson).to.have.property(\"message\", \"Record has been retrieved.\");",
+							"});",
+							"",
+							"// Test: Data is an array",
+							"pm.test(\"Data is an array\", function () {",
+							"    pm.expect(responseJson.data).to.be.an(\"array\");",
+							"});",
+							"",
+							"// Test: Date format is valid (DD/MM/YYYY)",
+							"pm.test(\"Response contains valid date formats\", function () {",
+							"    responseJson.data.forEach(function(transaction) {",
+							"        const transactionDate = transaction.transaction_date;",
+							"        pm.expect(transactionDate).to.match(/^\\d{2}\\/\\d{2}\\/\\d{4}$/);",
+							"    });",
+							"});",
+							"",
+							"// Test: Response time under 5 seconds",
+							"pm.test(\"Response time is less than 50000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(50000);",
+							"});"
+						
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const subject_id = pm.collectionVariables.get(\"subject_id\");\r",
+							"\r",
+							"function getTransaction(subject_id) {\r",
+							"    const myRequest = {\r",
+							"        url: \"https://api.t1.dev.revenir.tax/subjects/\"+subject_id+\"/transactions\",\r",
+							"        method: \"GET\",\r",
+							"        headers: {\r",
+							"            \"Content-Type\": \"application/json\",\r",
+							"        },\r",
+							"    };\r",
+							"    \r",
+							"    pm.sendRequest(myRequest, function (err, response) {\r",
+							"        if (err) {\r",
+							"            console.log(\"Error:\", err);\r",
+							"        } else {\r",
+							"            const responseData = response.json();\r",
+							"            console.log(\"Response:\", responseData);\r",
+							"            \r",
+							"            if(responseData.data.length <= 0) {\r",
+							"                setTimeout(function() {\r",
+							"                    getTransaction(subject_id);\r",
+							"                }, 5000);\r",
+							"            }\r",
+							"            else {\r",
+							"                const transactionId = responseData.data[0].transaction_id;\r",
+							"                pm.collectionVariables.set(\"transaction_id\", transactionId);\r",
+							"                pm.environment.set(\"transaction_id\", transactionId);\r",
+							"            }\r",
+							"        }\r",
+							"    });\r",
+							"}\r",
+							"\r",
+							"getTransaction(subject_id);"
+						
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "SubjectToken",
+						"value": "Test-Aleem-Ahmad-3",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}/transactions",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects",
+						"{{subject_id}}",
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Associate Transactions to Trips",
+			"event": [
+			  {
+				"listen": "test",
+				"script": {
+				  "exec": [
+					"// Assert that the status code is 200",
+					"pm.test(\"Status code is 200\", function () {",
+					"    pm.response.to.have.status(200);",
+					"});",
+					"",
+					"// Check that the response body has a 'status' and 'message' property",
+					"pm.test(\"Response has status and message\", function () {",
+					"    var jsonData = pm.response.json();",
+					"    pm.expect(jsonData).to.have.property(\"status\");",
+					"    pm.expect(jsonData).to.have.property(\"message\");",
+					"});",
+					"",
+					
+					"// Ensure response time is under 5000ms",
+					"pm.test(\"Response time is less than 5000ms\", function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});"
+				  ],
+				  "type": "text/javascript",
+				  "packages": {}
+				}
+			  },
+			  {
+				"listen": "prerequest",
+				"script": {
+				  "exec": [
+					"const subject_id = pm.collectionVariables.get(\"subject_id\");",
+					"",
+					"function getTransaction(subject_id) {",
+					"    const myRequest = {",
+					"        url: \"https://api.t1.dev.revenir.tax/subjects/\" + subject_id + \"/transactions\",",
+					"        method: \"GET\",",
+					"        headers: {",
+					"            \"Content-Type\": \"application/json\"",
+					"        }",
+					"    };",
+					"",
+					"    pm.sendRequest(myRequest, function (err, response) {",
+					"        if (err) {",
+					"            console.log(\"Error:\", err);",
+					"        } else {",
+					"            const responseData = response.json();",
+					"            console.log(\"Response:\", responseData);",
+					"",
+					"            if (responseData.data.length <= 0) {",
+					"                setTimeout(function () {",
+					"                    getTransaction(subject_id);",
+					"                }, 5000);",
+					"            } else {",
+					"                const transactionId = responseData.data[0].transaction_id;",
+					"                pm.collectionVariables.set(\"transaction_id\", transactionId);",
+					"                pm.environment.set(\"transaction_id\", transactionId);",
+					"            }",
+					"        }",
+					"    });",
+					"}",
+					"",
+					"getTransaction(subject_id);"
+				  ],
+				  "type": "text/javascript",
+				  "packages": {}
+				}
+			  }
+			],
+			"request": {
+			  "auth": {
+				"type": "ntlm"
+			  },
+			  "method": "POST",
+			  "header": [],
+			  "body": {
+				"mode": "raw",
+				"raw": "[\"{{transaction_id}}\"]\r\n",
+				"options": {
+				  "raw": {
+					"language": "json"
+				  }
+				}
+			  },
+			  "url": {
+				"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}/trips/{{trip_id}}/transactions",
+				"protocol": "https",
+				"host": [
+				  "api",
+				  "t1",
+				  "dev",
+				  "revenir",
+				  "tax"
+				],
+				"path": [
+				  "subjects",
+				  "{{subject_id}}",
+				  "trips",
+				  "{{trip_id}}",
+				  "transactions"
+				]
+			  }
+			},
+			"response": []
+		  },
+		  
+		{
+			"name": "Get Subject Transactions Detail",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status is 200\", function () {\r",
+							"    pm.response.to.have.status(200); // Ensure the status code is 200 OK\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response contains message and status\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson).to.have.property(\"status\").that.equals(\"success\"); // Check if status is 'success'\r",
+							"    pm.expect(responseJson).to.have.property(\"message\").that.equals(\"Record has been retrieved.\"); // Check if message is correct\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Data is an object\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.expect(responseJson.data).to.be.an(\"object\"); // Ensure data is an object, not an array\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Subject ID in URL matches the response\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    \r",
+							"    // Extract subject_id from the request URL\r",
+							"    const url = pm.request.url.toString();\r",
+							"    const subjectIdFromUrl = url.split('/')[4]; // Extract subject_id from the URL path\r",
+							"\r",
+							"    // Check if subject_id in response matches the subject_id in the URL\r",
+							"    pm.expect(responseJson.data.subject_id).to.eql(subjectIdFromUrl); // Compare subject_id in response with the subject_id in the URL\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response contains valid date formats\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    \r",
+							"    const createdAt = responseJson.data.created_at;\r",
+							"    const transactionDate = responseJson.data.transaction_date;\r",
+							"\r",
+							"    // Validate the 'created_at' date format (ISO 8601)\r",
+							"    pm.expect(createdAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$/);\r",
+							"\r",
+							"    // Validate the 'transaction_date' format (MM/DD/YYYY)\r",
+							"    pm.expect(transactionDate).to.match(/^\\d{2}\\/\\d{2}\\/\\d{4}$/);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response time is less than 50000ms\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(50000); // Ensure response time is below 50000ms\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+					  "exec": [
+						"const subject_id = pm.collectionVariables.get(\"subject_id\");",
+						"",
+						"function getTransaction(subject_id) {",
+						"    const myRequest = {",
+						"        url: \"https://api.t1.dev.revenir.tax/subjects/\" + subject_id + \"/transactions\",",
+						"        method: \"GET\",",
+						"        headers: {",
+						"            \"Content-Type\": \"application/json\"",
+						"        }",
+						"    };",
+						"",
+						"    pm.sendRequest(myRequest, function (err, response) {",
+						"        if (err) {",
+						"            console.log(\"Error:\", err);",
+						"        } else {",
+						"            const responseData = response.json();",
+						"            console.log(\"Response:\", responseData);",
+						"",
+						"            if (!responseData.data || responseData.data.length === 0) {",
+						"                setTimeout(function () {",
+						"                    getTransaction(subject_id);",
+						"                }, 5000);",
+						"            } else {",
+						"                const transactionId = responseData.data[0].transaction_id;",
+						"                pm.collectionVariables.set(\"transaction_id\", transactionId);",
+						"                console.log(\"Transaction ID set:\", transactionId);",
+						"                console.log(pm.collectionVariables.get(\"transaction_id\"));",
+						"            }",
+						"        }",
+						"    });",
+						"}",
+						"",
+						"getTransaction(subject_id);"
+					  ],
+					
+				  
+				  
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "SubjectToken",
+						"value": "Test-Aleem-Ahmad-3",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}/transactions/{{transaction_Id}}",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects",
+						"{{subject_id}}",
+						"transactions",
+						"{{transaction_Id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload Receipt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"pm.test(\"Status is success\", function () {\r",
+							"    pm.expect(pm.response.json().status).to.equal(\"success\");\r",
+							"});\r",
+							"pm.test(\"Response message is present\", function () {\r",
+							"    pm.expect(pm.response.json().message).to.be.ok;\r",
+							"});\r",
+							"pm.test(\"Message contains dev-documents-transactions\", function () {\r",
+							"    pm.expect(pm.response.json().message).to.include(\"dev-documents-transactions\");\r",
+							"});\r",
+							"pm.test(\"Location header exists\", function () {\r",
+							"    pm.response.to.have.header(\"Location\");\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const subject_id = pm.collectionVariables.get(\"subject_id\");\r",
+							"\r",
+							"function getTransaction(subject_id) {\r",
+							"    const myRequest = {\r",
+							"        url: \"https://api.t1.dev.revenir.tax/subjects/\"+subject_id+\"/transactions\",\r",
+							"        method: \"GET\",\r",
+							"        headers: {\r",
+							"            \"Content-Type\": \"application/json\",\r",
+							"        },\r",
+							"    };\r",
+							"    \r",
+							"    pm.sendRequest(myRequest, function (err, response) {\r",
+							"        if (err) {\r",
+							"            console.log(\"Error:\", err);\r",
+							"        } else {\r",
+							"            const responseData = response.json();\r",
+							"            console.log(\"Response:\", responseData);\r",
+							"            \r",
+							"            if(responseData.data.length <= 0) {\r",
+							"                setTimeout(function() {\r",
+							"                    getTransaction(subject_id);\r",
+							"                }, 5000);\r",
+							"            }\r",
+							"            else {\r",
+							"                const transactionId = responseData.data[0].transaction_id;\r",
+							"                pm.collectionVariables.set(\"transaction_id\", transactionId);\r",
+							"                pm.environment.set(\"transaction_id\", transactionId);\r",
+							"            }\r",
+							"        }\r",
+							"    });\r",
+							"}\r",
+							"\r",
+							"getTransaction(subject_id);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "C:\\Users\\ahmad\\OneDrive\\Desktop\\Techilab\\Receipt.jpg"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/transactions/{{transaction_id}}/receipts",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"transactions",
+						"{{transaction_id}}",
+						"receipts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Items for a Transaction",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+					  "exec": [
+						"pm.test(\"Response status is 200\", function () {\r",
+						"    pm.response.to.have.status(200); // Ensure the status code is 200 OK\r",
+						"});\r",
+						"\r",
+						"pm.test(\"Response contains message and status\", function () {\r",
+						"    const responseJson = pm.response.json();\r",
+						"    pm.expect(responseJson).to.have.property(\"status\").that.equals(\"success\"); // Check if status is 'success'\r",
+						"    pm.expect(responseJson).to.have.property(\"message\").that.equals(\"Record has been retrieved.\"); // Check if message is correct\r",
+						"});\r",
+						"\r",
+						"pm.test(\"Data is an array\", function () {\r",
+						"    const responseJson = pm.response.json();\r",
+						"    pm.expect(responseJson.data).to.be.an(\"array\"); // Ensure data is an array\r",
+						"});\r",
+						"\r",
+						"pm.test(\"Data contains at least one transaction if not empty\", function () {\r",
+						"    const responseJson = pm.response.json();\r",
+						"    \r",
+						"    // Check if data array is not empty and contains at least one transaction\r",
+						"    if (responseJson.data.length > 0) {\r",
+						"        pm.expect(responseJson.data).to.have.length.greaterThan(0); // Ensure at least one transaction exists\r",
+						"    } else {\r",
+						"        console.log(\"No transactions available for this subject_id.\");\r",
+						"    }\r",
+						"});\r",
+						"\r",
+						"pm.test(\"Response time is less than 50000ms\", function () {\r",
+						"    pm.expect(pm.response.responseTime).to.be.below(50000); // Ensure response time is below 50000ms\r",
+						"});\r"
+					  ],
+					  "type": "text/javascript",
+					  "packages": {}
+					}
+				  },
+				  
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"setTimeout(function () {\r",
+							"    console.log(\"90 seconds passed\");\r",
+							"}, 90000);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "ntlm"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}/transactions/{{transaction_Id}}/items",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects",
+						"{{subject_id}}",
+						"transactions",
+						"{{transaction_Id}}",
+						"items"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Checkout Trip",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const subject_id = pm.collectionVariables.get(\"subject_id\");",
+							"",
+							"function getSubjectStatus(subject_id) {",
+							"    const myRequest = {",
+							"        url: \"https://api.t1.dev.revenir.tax/subjects/\" + subject_id,",
+							"        method: \"GET\",",
+							"        headers: {",
+							"            \"Content-Type\": \"application/json\",",
+							"        },",
+							"    };",
+							"",
+							"    pm.sendRequest(myRequest, function (err, response) {",
+							"        if (err) {",
+							"            console.log(\"Error:\", err);",
+							"        } else {",
+							"            const responseData = response.json();",
+							"            console.log(\"Response:\", responseData);",
+							"",
+							"            const currentStatus = responseData.data.status;",
+							"",
+							"            if (currentStatus !== \"approved\") {",
+							"                console.log(\"Current status:\", currentStatus, \"- Retrying in 5 seconds...\");",
+							"                setTimeout(function () {",
+							"                    getSubjectStatus(subject_id);",
+							"                }, 5000);",
+							"            } else {",
+							"                console.log(\"Subject status is approved.\");",
+							"            }",
+							"        }",
+							"    });",
+							"}",
+							"",
+							"getSubjectStatus(subject_id);"
+						  
+						
+					  
+					
+				  
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// ✅ Check if the response status code is 201 (Created)",
+							"pm.test(\"Status code is 201 - Created\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+					  
+							"// ✅ Validate response body has correct status",
+							"pm.test(\"Response body has 'status' equal to 'success'\", function () {",
+							"    const responseBody = pm.response.json();",
+							"    pm.expect(responseBody.status).to.eql(\"success\");",
+							"});",
+					  
+							"// ✅ Validate response body has correct message",
+							"pm.test(\"Response body has correct message\", function () {",
+							"    const responseBody = pm.response.json();",
+							"    pm.expect(responseBody.message).to.eql(\"Reclaim Processed for trip\");",
+							"});",
+					  
+							"// ✅ Check that both 'status' and 'message' properties exist",
+							"pm.test(\"Response body contains required properties\", function () {",
+							"    const responseBody = pm.response.json();",
+							"    pm.expect(responseBody).to.have.property(\"status\");",
+							"    pm.expect(responseBody).to.have.property(\"message\");",
+							"});",
+					  
+							"// ✅ Check that response time is under 5 seconds",
+							"pm.test(\"Response time is below 5 seconds\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+							"});",
+					  
+							"// ✅ Validate JSON schema of the response",
+							"pm.test(\"Response schema is valid\", function () {",
+							"    var schema = {",
+							"        \"type\": \"object\",",
+							"        \"required\": [\"status\", \"message\"],",
+							"        \"properties\": {",
+							"            \"status\": { \"type\": \"string\" },",
+							"            \"message\": { \"type\": \"string\" }",
+							"        }",
+							"    };",
+							"    var responseData = pm.response.json();",
+							"    pm.expect(tv4.validate(responseData, schema)).to.be.true;",
+							"});"
+			
+						
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "ntlm"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}/trip/{{trip_id}}/checkout",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects",
+						"{{subject_id}}",
+						"trip",
+						"{{trip_id}}",
+						"checkout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Checkout Itinerary",
+			"request": {
+				"auth": {
+					"type": "ntlm"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}/trip/{{trip_id}}/itinerary/{{itinerary_id}}/checkout",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects",
+						"{{subject_id}}",
+						"trip",
+						"{{trip_id}}",
+						"itinerary",
+						"{{itinerary_id}}",
+						"checkout"
+					]
+				}
+			},
+			"event": [
+  {
+    "listen": "prerequest",
+    "script": {
+      "type": "text/javascript",
+      "exec": [ ]
+    }
+  },
+  {
+    "listen": "test",
+    "script": {
+      "type": "text/javascript",
+      "exec": [ 
+		"// ✅ Check if the response status code is 409 (Conflict)",
+		"pm.test(\"Status code is 409 - Conflict\", function () {",
+		"    pm.response.to.have.status(409);",
+		"});",
+  
+		"// ✅ Validate response body has correct status",
+		"pm.test(\"Response body has 'status' equal to 'error'\", function () {",
+		"    const responseBody = pm.response.json();",
+		"    pm.expect(responseBody.status).to.eql(\"error\");",
+		"});",
+  
+		"// ✅ Validate response body has correct message",
+		"pm.test(\"Response body has correct message\", function () {",
+		"    const responseBody = pm.response.json();",
+		"    pm.expect(responseBody.message).to.eql(\"Cart Already submitted for claim\");",
+		"});",
+  
+		"// ✅ Check that both 'status' and 'message' properties exist",
+		"pm.test(\"Response body contains required properties\", function () {",
+		"    const responseBody = pm.response.json();",
+		"    pm.expect(responseBody).to.have.property(\"status\");",
+		"    pm.expect(responseBody).to.have.property(\"message\");",
+		"});",
+  
+		"// ✅ Check that response time is under 5 seconds",
+		"pm.test(\"Response time is below 5 seconds\", function () {",
+		"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+		"});",
+  
+		"// ✅ Validate JSON schema of the response",
+		"pm.test(\"Response schema is valid\", function () {",
+		"    var schema = {",
+		"        \"type\": \"object\",",
+		"        \"required\": [\"status\", \"message\"],",
+		"        \"properties\": {",
+		"            \"status\": { \"type\": \"string\" },",
+		"            \"message\": { \"type\": \"string\" }",
+		"        }",
+		"    };",
+		"    var responseData = pm.response.json();",
+		"    pm.expect(tv4.validate(responseData, schema)).to.be.true;",
+		"});"
+	 
+	  
+	]
+    }
+  }
+],
+
+			"response": []
+		},
+		{
+			"name": "Get All Carts for a trip",
+			"event" : [
+		{
+			"listen": "test",
+			"script": {
+				"exec": [
+					"// Parse response body",
+					"const responseJson = pm.response.json();",
+					"",
+					"// Dynamically check for 'cart_id' inside nested location keys (like 'FRA')",
+					"if (responseJson && responseJson.data && responseJson.data[0]) {",
+					"    const keys = Object.keys(responseJson.data[0]);",
+					"    for (let key of keys) {",
+					"        const item = responseJson.data[0][key];",
+					"        if (Array.isArray(item) && item.length > 0 && item[0].id) {",
+					"            const cartId = item[0].id;",
+					"            pm.collectionVariables.set(\"cart_id\", cartId);",
+					"            pm.environment.set(\"cart_id\", cartId);",
+					"            console.log(\"Cart ID found and set:\", cartId);",
+					"            break;",
+					"        }",
+					"    }",
+					"} else {",
+					"    console.log(\"'cart_id' not found in the response.\");",
+					"}",
+					"",
+					"// Test: Status code is 200",
+					"pm.test(\"Status code is 200\", function () {",
+					"    pm.response.to.have.status(200);",
+					"});",
+					"",
+					"// Test: Response contains 'status' and 'message'",
+					"pm.test(\"Response contains 'status' and 'message'\", function () {",
+					"    pm.expect(responseJson).to.have.property(\"status\");",
+					"    pm.expect(responseJson).to.have.property(\"message\");",
+					"});",
+					"",
+					"// Test: 'data' is an array",
+					"pm.test(\"Response data is an array\", function () {",
+					"    pm.expect(responseJson.data).to.be.an(\"array\");",
+					"});",
+					"",
+					"// Test: Response time is below 5 seconds",
+					"pm.test(\"Response time is under 5000ms\", function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});",
+					"",
+					"// Test: At least one valid cart ID exists in the response",
+					"pm.test(\"At least one valid cart ID exists\", function () {",
+					"    let found = false;",
+					"    const keys = Object.keys(responseJson.data[0]);",
+					"    for (let key of keys) {",
+					"        const item = responseJson.data[0][key];",
+					"        if (Array.isArray(item) && item.length > 0 && item[0].id) {",
+					"            found = true;",
+					"            break;",
+					"        }",
+					"    }",
+					"    pm.expect(found).to.be.true;",
+					"});"
+				],
+				"type": "text/javascript",
+				"packages": {}
+			}
+		},
+		{
+			"listen": "prerequest",
+			"script": {
+				"exec": [
+					"const subject_id = pm.collectionVariables.get(\"subject_id\");",
+					"const trip_id = pm.collectionVariables.get(\"trip_id\");",
+					"",
+					"function fetchCartId(subject_id, trip_id) {",
+					"    const myRequest = {",
+					"        url: \"https://api.t1.dev.revenir.tax/subjects/\" + subject_id + \"/trips/\" + trip_id + \"/carts\",",
+					"        method: \"GET\",",
+					"        header: {",
+					"            \"Content-Type\": \"application/json\"",
+					"        }",
+					"    };",
+					"",
+					"    pm.sendRequest(myRequest, function (err, response) {",
+					"        if (err) {",
+					"            console.log(\"Error while hitting Get Carts API:\", err);",
+					"        } else {",
+					"            const responseData = response.json();",
+					"            console.log(\"Pre-request response:\", responseData);",
+					"",
+					"            if (!responseData.data || responseData.data.length === 0) {",
+					"                console.log(\"No cart found yet, retrying in 5s...\");",
+					"                setTimeout(function () {",
+					"                    fetchCartId(subject_id, trip_id);",
+					"                }, 5000);",
+					"            } else {",
+					"                const keys = Object.keys(responseData.data[0]);",
+					"                let found = false;",
+					"                for (let key of keys) {",
+					"                    const item = responseData.data[0][key];",
+					"                    if (Array.isArray(item) && item.length > 0 && item[0].id) {",
+					"                        const cartId = item[0].id;",
+					"                        pm.environment.set(\"cart_id\", cartId);",
+					"                        pm.collectionVariables.set(\"cart_id\", cartId);",
+					"                        console.log(\"cart_id set in prerequest:\", cartId);",
+					"                        found = true;",
+					"                        break;",
+					"                    }",
+					"                }",
+					"                if (!found) {",
+					"                    console.log(\"No valid cart_id found in nested keys.\");",
+					"                }",
+					"            }",
+					"        }",
+					"    });",
+					"}",
+					"",
+					"fetchCartId(subject_id, trip_id);"
+				],
+				"type": "text/javascript",
+				"packages": {}
+			}
+		}
+	],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "ntlm"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}/trips/{{trip_id}}/carts",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects",
+						"{{subject_id}}",
+						"trips",
+						"{{trip_id}}",
+						"carts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Cart",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"\r",
+							"\r",
+							"// Extract the 'id' from the API response\r",
+							"const responseJson = pm.response.json();\r",
+							"\r",
+							"// Check if 'data' and 'FRA' or any other keys exist in the response\r",
+							"if (responseJson && responseJson.data && Array.isArray(responseJson.data) && responseJson.data[0]) {\r",
+							"    // Loop through the keys in the first item of the 'data' array\r",
+							"    const keys = Object.keys(responseJson.data[0]);\r",
+							"\r",
+							"    // Check if any of the keys match the expected dynamic key (like 'FRA')\r",
+							"    for (let key of keys) {\r",
+							"        const item = responseJson.data[0][key];\r",
+							"        if (Array.isArray(item) && item.length > 0 && item[0].id) {\r",
+							"            // Extract the 'id' from the first item\r",
+							"            const cartId = item[0].id;\r",
+							"\r",
+							"            // Set the extracted 'id' as an environment variable\r",
+							"            pm.environment.set(\"cart_id\", cartId);\r",
+							"\r",
+							"            // Optionally log it for verification\r",
+							"            console.log(\"Cart ID:\", cartId);\r",
+							"            break;  // Exit the loop once the id is found\r",
+							"        }\r",
+							"    }\r",
+							"} else {\r",
+							"    console.log(\"Error: No valid data or ID found in the response.\");\r",
+							"}\r",
+							"\r",
+							"pm.test(\"Status is 200 OK\", function() {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response has status 'success'\", function() {\r",
+							"    const jsonResponse = pm.response.json();\r",
+							"    pm.expect(jsonResponse.status).to.eql(\"success\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response has message 'Record has been retrieved.'\", function() {\r",
+							"    const jsonResponse = pm.response.json();\r",
+							"    pm.expect(jsonResponse.message).to.eql(\"Record has been retrieved.\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each item in response has the expected fields\", function() {\r",
+							"    const jsonResponse = pm.response.json();\r",
+							"    \r",
+							"    // Ensure the response contains the \"data\" property and it's an array\r",
+							"    pm.expect(jsonResponse).to.have.property(\"data\");\r",
+							"    pm.expect(jsonResponse.data).to.be.an(\"array\");\r",
+							"\r",
+							"    // Iterate through each entry in the \"data\" array\r",
+							"    jsonResponse.data.forEach(function(entry) {\r",
+							"        // Ensure that the entry contains the \"FRA\" property and it's an array\r",
+							"        pm.expect(entry).to.have.property(\"FRA\");\r",
+							"        pm.expect(entry.FRA).to.be.an(\"array\");\r",
+							"\r",
+							"        // Iterate over each object inside the \"FRA\" array\r",
+							"        entry.FRA.forEach(function(transactionEntry) {\r",
+							"            // Ensure the \"transactions\" property exists and is an array\r",
+							"            pm.expect(transactionEntry).to.have.property(\"transactions\");\r",
+							"            pm.expect(transactionEntry.transactions).to.be.an(\"array\");\r",
+							"\r",
+							"            // Iterate through each transaction in the \"transactions\" array\r",
+							"            transactionEntry.transactions.forEach(function(transaction) {\r",
+							"                // Ensure the transaction has the expected properties\r",
+							"                pm.expect(transaction.transaction).to.have.property(\"merchant_transaction_id\");\r",
+							"                pm.expect(transaction.transaction).to.have.property(\"currency\");\r",
+							"                \r",
+							"                // Ensure the \"items\" property exists and is an array inside the transaction\r",
+							"                pm.expect(transaction).to.have.property(\"items\");\r",
+							"                pm.expect(transaction.items).to.be.an(\"array\");\r",
+							"\r",
+							"                // Iterate through each item in the \"items\" array\r",
+							"                transaction.items.forEach(function(item) {\r",
+							"                    // Ensure the item has the expected properties\r",
+							"                    pm.expect(item).to.have.property(\"id\");\r",
+							"                    pm.expect(item).to.have.property(\"currency\");\r",
+						
+				            "});",
+							"});",
+							"});",
+							"});",
+					
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const subject_id = pm.collectionVariables.get(\"subject_id\");",
+							"const trip_id = pm.collectionVariables.get(\"trip_id\");",
+							"",
+							"function fetchCartId(subject_id, trip_id) {",
+							"    const myRequest = {",
+							"        url: \"https://api.t1.dev.revenir.tax/subjects/\" + subject_id + \"/trips/\" + trip_id + \"/carts\",",
+							"        method: \"GET\",",
+							"        header: {",
+							"            \"Content-Type\": \"application/json\"",
+							"        }",
+							"    };",
+							"",
+							"    pm.sendRequest(myRequest, function (err, response) {",
+							"        if (err) {",
+							"            console.log(\"Error while hitting Get Carts API:\", err);",
+							"        } else {",
+							"            const responseData = response.json();",
+							"            console.log(\"Pre-request response:\", responseData);",
+							"",
+							"            if (!responseData.data || responseData.data.length === 0) {",
+							"                console.log(\"No cart found yet, retrying in 5s...\");",
+							"                setTimeout(function () {",
+							"                    fetchCartId(subject_id, trip_id);",
+							"                }, 5000);",
+							"            } else {",
+							"                const keys = Object.keys(responseData.data[0]);",
+							"                let found = false;",
+							"                for (let key of keys) {",
+							"                    const item = responseData.data[0][key];",
+							"                    if (Array.isArray(item) && item.length > 0 && item[0].id) {",
+							"                        const cartId = item[0].id;",
+							"                        pm.environment.set(\"cart_id\", cartId);",
+							"                        pm.collectionVariables.set(\"cart_id\", cartId);",
+							"                        console.log(\"cart_id set in prerequest:\", cartId);",
+							"                        found = true;",
+							"                        break;",
+							"                    }",
+							"                }",
+							"                if (!found) {",
+							"                    console.log(\"No valid cart_id found in nested keys.\");",
+							"                }",
+							"            }",
+							"        }",
+							"    });",
+							"}",
+							"",
+							"fetchCartId(subject_id, trip_id);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}/carts",
+					"protocol": "https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects",
+						"{{subject_id}}",
+						"carts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Trips Barcodes",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "ntlm"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}/trips/{{trip_id}}/barcodes",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects",
+						"{{subject_id}}",
+						"trips",
+						"{{trip_id}}",
+						"barcodes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Trips Barcodes Detail",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "ntlm"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}/trips/{{trip_id}}/barcodes/4df3a128-f66b-47cf-9e84-81627100f9b7",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects",
+						"{{subject_id}}",
+						"trips",
+						"{{trip_id}}",
+						"barcodes",
+						"4df3a128-f66b-47cf-9e84-81627100f9b7"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Trip",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check if the response status code is either 200 (OK) or 204 (No Content)\r",
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    // OR\r",
+							"    // pm.response.to.have.status(204);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response contains success message\", function () {\r",
+							"    const responseBody = pm.response.json();\r",
+							"    pm.expect(responseBody.message).to.eql(\"Record has been deleted.\"); // Include the period\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response time is less than 5 seconds\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(5000);  // 5000 ms = 5 seconds\r",
+							"});\r",
+							
+							"pm.test(\"Response body contains a status message\", function () {\r",
+							"    const responseBody = pm.response.json();\r",
+							"    pm.expect(responseBody).to.have.property('status');\r",
+							"    pm.expect(responseBody).to.have.property('message');\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "ntlm"
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"first_name\": \"Aleem Test 414\",\n    \"last_name\": \"Ahmad 41\",\n    \"passport\": {\n        \"number\": \"980-8098-56757\",\n        \"country\": \"Pakistan\",\n        \"expiry\": \"19-01-2026\"\n    },\n    \"address\": {\n        \"line_1\": \"Testing address 1\",\n        \"line_2\": \"Testing address 2\",\n        \"line_3\": \"Testing address 3\",\n        \"city\": \"Lahore\",\n        \"region\": \"Punjab\",\n        \"postcode\": \"54000\",\n        \"country\": \"Pakistan\"\n    },\n    \"dob\": \"19-01-1987\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}/trips/{{trip_id}}",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects",
+						"{{subject_id}}",
+						"trips",
+						"{{trip_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Subject Transactions",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Fixed the error by checking if the response is not null or undefined before accessing its properties\r",
+							"pm.test(\"Response status code is 200 or 204\", function () {\r",
+							"    pm.response.to.have.status(200); // Alternatively, you could check for 204\r",
+							"    // OR\r",
+							"    // pm.response.to.have.status(204);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response contains success message\", function () {\r",
+							"    const responseBody = pm.response.json();\r",
+							"    pm.expect(responseBody.message).to.eql(\"Record has been deleted.\"); // Adjust based on actual message\r",
+							"});\r",
+						
+							"pm.test(\"Response time is less than 2 seconds\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(2000);  // 2000 ms = 2 seconds\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response contains only expected fields\", function () {\r",
+							"    const responseBody = pm.response.json();\r",
+							"    if (responseBody) {\r",
+							"        pm.expect(responseBody).to.have.property(\"message\"); // Assuming the response contains only the message\r",
+							"        pm.expect(responseBody).to.not.have.any.keys(\"id\", \"name\", \"email\"); // Ensure no other fields exist\r",
+							"    } else {\r",
+							"        console.log(\"Response body is null or undefined\");\r",
+							"    }\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.environment.get(\"transaction_id\");\r",
+"                            pm.collectionVariables.get(\"transaction_id\");"
+
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "SubjectToken",
+						"value": "Test-Aleem-Ahmad-3",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"country\": \"FIN\",\n  \"merchant_name\": \"Apple\",\n  \"transaction_date\": \"02/12/2025\",\n  \"total_amount\": 100,\n  \"total_vat_amount\":20,\n  \"receipt_status\": \"pending\",\n  \"transaction_id\": \"09iuo-poi098-oj8\",\n  \"currency\":\"USD\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.t1.dev.revenir.tax/subjects/{{subject_id}}/transactions/{{transaction_Id}}",
+					"protocol":"https",
+					"host": [
+						"api",
+						"t1",
+						"dev",
+						"revenir",
+						"tax"
+					],
+					"path": [
+						"subjects",
+						"{{subject_id}}",
+						"transactions",
+						"{{transaction_Id}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "subject_id",
+			"value": ""
+		},
+		{
+			"key": "trip_id",
+			"value": ""
+		},
+		{
+			"key": "transaction_id",
+			"value": ""
+		}
+	]
+}

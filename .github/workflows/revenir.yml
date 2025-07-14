@@ -1,0 +1,34 @@
+name: Run Postman Tests on Windows
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  postman-tests:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install Newman on Windows
+      run: npm install -g newman
+
+    - name: Run Dev Revenir Postman Collection (Windows)
+      run: |
+        newman run postman\\Practice.json `
+          --environment postman\\revenir-env.json `
+          --reporters cli,json `
+          --reporter-json-export postman\\newman-report.json
+
+    - name: Upload Newman Test Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: newman-report
+        path: postman/newman-report.json
