@@ -22,10 +22,11 @@ jobs:
 
     - name: Run Dev Revenir Postman Collection (Windows)
       run: |
-        newman run postman\\Dev-Revenir Complete Flow.postman_collection.json `
-          --environment postman\\revenir-env.json `
+        newman run "postman/Dev-Revenir Complete Flow.postman_collection.json" `
+          --environment "postman/revenir-env.json" `
           --reporters cli,json `
-          --reporter-json-export postman\\newman-report.json
+          --reporter-json-export "postman/newman-report.json"
+          shell: pwsh
 
     - name: Upload Newman Test Report
       uses: actions/upload-artifact@v4
