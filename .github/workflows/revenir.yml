@@ -21,12 +21,23 @@ jobs:
       run: |
         npm install -g newman
         npm install -g newman-reporter-html
+
+    - name: Create cert and key files
+      shell: bash
+      run: |
+          echo "$API_CLIENT_CERT" > client-cert.pem
+          echo "$API_CLIENT_KEY" > client-key.pem
+      env:
+          API_CLIENT_CERT: ${{ secrets.API_CLIENT_CERT }}
+          API_CLIENT_KEY: ${{ secrets.API_CLIENT_KEY }}
     
     - name: Run Dev Revenir Postman Collection
       shell: bash
       run: |
             newman run "postman/Dev-Revenir Complete Flow.postman_collection.json" \
             --environment "postman/revenir-env.json" \
+            --ssl-client-cert client-cert.pem \
+            --ssl-client-key client-key.pem \
             --insecure \
             --working-dir "postman/images" \
             --delay-request 1000 \
