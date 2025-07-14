@@ -14,7 +14,9 @@
     { "key": "region", "value": "Arizona", "enabled": true },
     { "key": "postcode", "value": "54000", "enabled": true },
     { "key": "country", "value": "AUS", "enabled": true },
-    { "key": "dob", "value": "19-01-1987", "enabled": true }
+    { "key": "dob", "value": "19-01-1987", "enabled": true },
+    { "key": "base64_passport_data", "value": "data:image/png;base64,FAKE_BASE64_PASSPORT", "enabled": true },
+    { "key": "boarding_pass_data", "value": "data:image/png;base64,FAKE_BASE64_BOARDINGPASS", "enabled": true }
   ],
   "timestamp": 0,
   "_postman_variable_scope": "environment",
