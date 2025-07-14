@@ -25,10 +25,7 @@ jobs:
     - name: Run Dev Revenir Postman Collection (Windows)
       shell: pwsh
       run: |
-        newman run "postman/Dev-Revenir Complete Flow.postman_collection.json" `
-          --environment "postman/revenir-env.json" `
-          --working-dir "postman/images"
-          --reporter-json-export "postman/newman-report.json"
+        newman run "postman/Dev-Revenir Complete Flow.postman_collection.json" --environment "postman/revenir-env.json" --working-dir "postman/images" --reporters cli,json --reporter-json-export "postman/newman-report.json"
     
     - name: Upload Newman Test Report
       uses: actions/upload-artifact@v4
