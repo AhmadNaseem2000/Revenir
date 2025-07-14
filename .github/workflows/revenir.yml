@@ -23,6 +23,7 @@ jobs:
         npm install -g newman-reporter-html
     
     - name: Run Dev Revenir Postman Collection (Windows)
+      shell: pwsh
       run: |
         newman run "postman/Dev-Revenir Complete Flow.postman_collection.json" `
           --environment "postman/revenir-env.json" `
