@@ -39,7 +39,6 @@ jobs:
             --ssl-client-cert client-cert.pem \
             --ssl-client-key client-key.pem \
             --insecure \
-            --working-dir "postman/images/" \
             --delay-request 1000 \
             --reporters cli,json \
             --reporter-json-export "postman/newman-report.json"
