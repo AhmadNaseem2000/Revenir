@@ -334,7 +334,7 @@
 						{
 							"key": "file",
 							"type": "file",
-							"src": "C:\\Users\\ahmad\\Downlaods\\revenir-pipeline\\postman\\images\\Passport.jpg"
+							"src": "Passport.jpg"
 						}
 					]
 				},
@@ -795,7 +795,7 @@
 						{
 							"key": "file",
 							"type": "file",
-							"src": "C:\\Users\\ahmad\\Downlaods\\revenir-pipeline\\postman\\images\\Boarding Pass.jpg"
+							"src": "Boarding Pass.jpg"
 						}
 					]
 				},
@@ -1441,7 +1441,7 @@
 						{
 							"key": "file",
 							"type": "file",
-							"src": "C:\\Users\\ahmad\\Downlaods\\revenir-pipeline\\postman\\images\\Receipt.jpg"
+							"src": "Receipt.jpg"
 						}
 					]
 				},
