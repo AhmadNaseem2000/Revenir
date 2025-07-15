@@ -334,7 +334,7 @@
 						{
 							"key": "file",
 							"type": "file",
-							"src": "Passport.jpg"
+							"src": "postman/images/Passport.jpg"
 						}
 					]
 				},
@@ -795,7 +795,7 @@
 						{
 							"key": "file",
 							"type": "file",
-							"src": "Boarding Pass.jpg"
+							"src": "postman/images/Boarding Pass.jpg"
 						}
 					]
 				},
@@ -1441,7 +1441,7 @@
 						{
 							"key": "file",
 							"type": "file",
-							"src": "Receipt.jpg"
+							"src": "postman/images/Receipt.jpg"
 						}
 					]
 				},
