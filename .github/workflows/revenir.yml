@@ -35,7 +35,6 @@ jobs:
       shell: bash
       run: |
             newman run "postman/Dev-Revenir Complete Flow.postman_collection.json" \
-            --environment "postman/revenir-env.json" \
             --ssl-client-cert client-cert.pem \
             --ssl-client-key client-key.pem \
             --delay-request 1000 \
