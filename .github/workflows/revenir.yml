@@ -38,7 +38,6 @@ jobs:
             --environment "postman/revenir-env.json" \
             --ssl-client-cert client-cert.pem \
             --ssl-client-key client-key.pem \
-            --insecure \
             --delay-request 1000 \
             --reporters cli,json \
             --reporter-json-export "postman/newman-report.json"
