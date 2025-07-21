@@ -38,7 +38,7 @@ jobs:
             --ssl-client-cert client-cert.pem \
             --ssl-client-key client-key.pem \
             --delay-request 1000 \
-            --reporters cli,json \
+            --reporters cli,json,html \
             --reporter-json-export "postman/newman-report.json" \
             --reporter-html-export "postman/newman-report.html"
             
