@@ -36,7 +36,7 @@ jobs:
           echo "Listing image files:"
           ls -l Revenir/images
           echo "Verifying Passport.jpg exists:"
-          test -f Revenir/images/Passport.jpg && echo "✅ Passport.jpg found." || echo "❌ Passport.jpg missing."
+          test -f images/Passport.jpg && echo "✅ Passport.jpg found." || echo "❌ Passport.jpg missing."
     
     - name: Run Dev Revenir Postman Collection
       shell: bash
