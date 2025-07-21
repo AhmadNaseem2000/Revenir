@@ -10,7 +10,7 @@ jobs:
     
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Setup Node.js
       uses: actions/setup-node@v3
@@ -30,6 +30,13 @@ jobs:
       env:
           API_CLIENT_CERT: ${{ secrets.API_CLIENT_CERT }}
           API_CLIENT_KEY: ${{ secrets.API_CLIENT_KEY }}
+
+    - name: Debug uploaded image files
+      run: |
+          echo "Listing image files:"
+          ls -l Revenir/images
+          echo "Verifying Passport.jpg exists:"
+          test -f Revenir/images/Passport.jpg && echo "✅ Passport.jpg found." || echo "❌ Passport.jpg missing."
     
     - name: Run Dev Revenir Postman Collection
       shell: bash
