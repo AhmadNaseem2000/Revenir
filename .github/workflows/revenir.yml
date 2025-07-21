@@ -30,13 +30,6 @@ jobs:
       env:
           API_CLIENT_CERT: ${{ secrets.API_CLIENT_CERT }}
           API_CLIENT_KEY: ${{ secrets.API_CLIENT_KEY }}
-
-    - name: Debug uploaded image files
-      run: |
-          echo "Listing image files:"
-          ls -l Revenir/images
-          echo "Verifying Passport.jpg exists:"
-          test -f images/Passport.jpg && echo "✅ Passport.jpg found." || echo "❌ Passport.jpg missing."
     
     - name: Run Dev Revenir Postman Collection
       shell: bash
