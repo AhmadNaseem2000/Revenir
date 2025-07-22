@@ -1510,9 +1510,6 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"setTimeout(function () {\r",
-							"    console.log(\"90 seconds passed\");\r",
-							"}, 90000);\r",
 							""
 						],
 						"type": "text/javascript",
