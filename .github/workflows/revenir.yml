@@ -16,6 +16,14 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: '18'
+      
+    - name: Cache npm
+      uses: actions/cache@v4
+      with:
+        path: ~\AppData\Roaming\npm-cache
+        key: ${{ runner.os }}-npm-global-${{ hashFiles('.github/workflows/revenir.yml') }}
+        restore-keys: |
+          ${{ runner.os }}-npm-global-
     
     - name: Install Newman and HTML Reporter
       run: |
