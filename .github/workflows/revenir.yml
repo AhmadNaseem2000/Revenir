@@ -22,9 +22,9 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~\AppData\Roaming\npm-cache
-        key: ${{ runner.os }}-npm-global-${{ env.CACHE_VERSION }}
+        key: ${{ runner.os }}-npm-global-bin-${{ env.CACHE_VERSION }}
         restore-keys: |
-          ${{ runner.os }}-npm-global-
+          ${{ runner.os }}-npm-global-bin-
     
     - name: Install Newman and HTML Reporter
       run: |
