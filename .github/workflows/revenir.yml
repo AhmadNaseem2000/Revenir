@@ -18,13 +18,13 @@ jobs:
       with:
         node-version: '18'
       
-    - name: Cache npm
-      uses: actions/cache@v4
+    - name: Cache node_modules
+      uses: actions/cache@v3
       with:
-        path: ~\AppData\Roaming\npm-cache
-        key: ${{ runner.os }}-npm-global-bin-${{ env.CACHE_VERSION }}
-        restore-keys: |
-          ${{ runner.os }}-npm-global-bin-
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
     
     - name: Install Newman and HTML Reporter
       run: |
