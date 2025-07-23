@@ -28,8 +28,10 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-node-${{ env.CACHE_VERSION }}-
 
-    - name: Install Dependencies
-      run: npm install
+    - name: Install Newman and HTML Reporter
+      run: |
+        npm install -g newman
+        npm install -g newman-reporter-html
 
     - name: Create cert and key files
       shell: bash
