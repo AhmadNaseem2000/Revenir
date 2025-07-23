@@ -4,9 +4,6 @@ on:
   push:
     branches: [ "main" ]
 
-env:
-  CACHE_VERSION: v1
-
 jobs:
   postman-tests:
     runs-on: windows-latest
@@ -14,20 +11,20 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
-
+    
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-
+      
     - name: Cache node_modules
       uses: actions/cache@v4
       with:
-        path: node_modules
-        key: ${{ runner.os }}-node-${{ env.CACHE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-${{ env.CACHE_VERSION }}-
-
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ env.CACHE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ env.CACHE_VERSION }}-
+    
     - name: Install Newman and HTML Reporter
       run: |
         npm install -g newman
@@ -36,23 +33,23 @@ jobs:
     - name: Create cert and key files
       shell: bash
       run: |
-        echo "$API_CLIENT_CERT" > client-cert.pem
-        echo "$API_CLIENT_KEY" > client-key.pem
+          echo "$API_CLIENT_CERT" > client-cert.pem
+          echo "$API_CLIENT_KEY" > client-key.pem
       env:
-        API_CLIENT_CERT: ${{ secrets.API_CLIENT_CERT }}
-        API_CLIENT_KEY: ${{ secrets.API_CLIENT_KEY }}
-
+          API_CLIENT_CERT: ${{ secrets.API_CLIENT_CERT }}
+          API_CLIENT_KEY: ${{ secrets.API_CLIENT_KEY }}
+    
     - name: Run Dev Revenir Postman Collection
       shell: bash
       run: |
-        npx newman run "postman/Dev-Revenir Complete Flow.postman_collection.json" \
-          --ssl-client-cert client-cert.pem \
-          --ssl-client-key client-key.pem \
-          --delay-request 1000 \
-          --reporters cli,json,html \
-          --reporter-json-export "postman/newman-report.json" \
-          --reporter-html-export "postman/newman-report.html"
-
+            newman run "postman/Dev-Revenir Complete Flow.postman_collection.json" \
+            --ssl-client-cert client-cert.pem \
+            --ssl-client-key client-key.pem \
+            --delay-request 1000 \
+            --reporters cli,json,html \
+            --reporter-json-export "postman/newman-report.json" \
+            --reporter-html-export "postman/newman-report.html"
+            
     - name: Upload Newman Test Report
       uses: actions/upload-artifact@v4
       with:
@@ -62,5 +59,5 @@ jobs:
     - name: Upload Newman HTML Report
       uses: actions/upload-artifact@v4
       with:
-        name: newman-html-report
-        path: postman/newman-report.html
+       name: newman-html-report
+       path: postman/newman-report.html
