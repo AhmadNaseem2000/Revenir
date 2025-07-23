@@ -1510,6 +1510,9 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
+							"setTimeout(function () {\r",
+							"    console.log(\"30 seconds passed\");\r",
+							"}, 30000);\r",
 							""
 						],
 						"type": "text/javascript",
