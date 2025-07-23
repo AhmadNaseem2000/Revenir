@@ -3,8 +3,7 @@ name: Postman Tests Script
 on:
   push:
     branches: [ "main" ]
-env:
-  CACHE_VERSION: v4
+
 jobs:
   postman-tests:
     runs-on: windows-latest
@@ -23,9 +22,9 @@ jobs:
       with:
           path: |
             node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          key: Windows-node-${{ env.CACHE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-
+            Windows-node-${{ env.CACHE_VERSION }}-
     
     - name: Install Newman and HTML Reporter
       run: |
@@ -63,3 +62,5 @@ jobs:
       with:
        name: newman-html-report
        path: postman/newman-report.html
+env:
+  CACHE_VERSION: v1
