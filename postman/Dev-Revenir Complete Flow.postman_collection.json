@@ -1511,8 +1511,8 @@
 					"script": {
 						"exec": [
 							"setTimeout(function () {\r",
-							"    console.log(\"15 seconds passed\");\r",
-							"}, 15000);\r",
+							"    console.log(\"20 seconds passed\");\r",
+							"}, 20000);\r",
 							""
 						],
 						"type": "text/javascript",
